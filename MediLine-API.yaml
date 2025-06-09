@@ -13,8 +13,6 @@ info:
 tags:
     - name: Final
       description: Ready for backend
-    - name: Patient Dashboard
-      description: Endpoints for patient dashboard data
     - name: Appointments
       description: Patient appointment operations
     - name: Prescriptions
@@ -72,7 +70,7 @@ paths:
                                         description: Date of the next appointment
                                     todays_medications:
                                         description: List of medications for today
-                                        $ref: "#/components/schemas/Medication"    
+                                        $ref: "#/components/schemas/Medications"    
                                     upcoming_appointments:
                                         description: top 2 Upcoming appointments for the patient
                                         type: array
@@ -1660,7 +1658,7 @@ components:
                       nextAppointment:
                           type: string
                           description: Date and time of the next appointment
-        medications:
+        Medications:
             type: array
             items:
                 type: object
@@ -2255,6 +2253,8 @@ components:
                 - medications
                 - symptoms
                 - diagnosis
+
+        
 
         TestBooking:
           allOf:
