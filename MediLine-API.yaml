@@ -11,6 +11,8 @@ info:
 #       description: Test Server
 
 tags:
+    - name: Final
+      description: Ready for backend
     - name: Patient Dashboard
       description: Endpoints for patient dashboard data
     - name: Appointments
@@ -37,20 +39,314 @@ tags:
       description: Endpoints for hospital side operations
 
 paths:
+    /patient/test-request-list:
+        get:
+            summary: Get the list of medical test requests
+            description: Retrieve all medical test requests for a specific patient
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                patientId:
+                                    type: string
+                                    format: uuid
+                                    description: ID of the patient
+                                status:
+                                    type: string
+                                    enum: ['All', 'Pending', 'Accepted', 'Rejected', 'Sample Collected']
+                                    description: Filter test requests by status
+                            required:
+                                - patientId
+            responses:
+                "200":
+                    description: Complete dashboard data retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    request_id:
+                                        type: string
+                                        format: uuid
+                                        description: ID of the patient
+                                    test: 
+                                        type: object
+                                        properties:
+                                            testId:
+                                                type: string
+                                                format: uuid
+                                            testName:
+                                                type: string    
+                                        description: Name of the medical test requested
+                                    status:
+                                        type: string
+                                        enum: ['Pending', 'Accepted', 'Rejected', 'Sample Collected']
+                                        description: Current status of the medical test request
+                                    requested_date:
+                                        type: string
+                                        format: date-time
+                                        description: Date when the test was requested
+                                    Hospital:
+                                        $ref: "#/components/schemas/Hospital"
+                                required:
+                                    - request_id
+                                    - test
+                                    - status
+                                    - requested_date
+                                    - Hospital
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+                "403":
+                    $ref: "#/components/responses/ForbiddenError"
+                "404":
+                    $ref: "#/components/responses/NotFoundError"
+
+    /patient/appointments:
+        get:
+            summary: Get patient's upcoming appointments
+            description: Retrieve all upcoming appointments for a patient
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                patientId:
+                                    type: string
+                                    format: uuid
+                                    description: ID of the patient
+                            required:
+                                - patientId
+            responses:
+                "200":
+                    description: Appointments retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Appointment"
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+                "403":
+                    $ref: "#/components/responses/ForbiddenError"
+                "404":
+                    $ref: "#/components/responses/NotFoundError"
+
+        delete:
+            summary: Cancel appointment
+            description: Cancel an existing appointment
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                appointmentId:
+                                    type: string
+                                    format: uuid
+                                    description: Unique identifier of the appointment
+                            required:
+                                - appointmentId
+            responses:
+                "204":
+                    description: Appointment cancelled successfully
+                "400":
+                    description: Appointment cannot be cancelled (e.g., too close to appointment time)
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+                "403":
+                    $ref: "#/components/responses/ForbiddenError"
+                "404":
+                    $ref: "#/components/responses/NotFoundError"
+
+    /patient/prescriptions/details:
+        get:
+            summary: Get full prescription details
+            description: Retrieve complete details of a specific prescription
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                prescriptionId:
+                                    type: string
+                                    format: uuid
+                                    description: Unique identifier of the prescription
+                            required:
+                                - prescriptionId
+            responses:
+                "200":
+                    description: Prescription details retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PrescriptionDetails"
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+                "403":
+                    $ref: "#/components/responses/ForbiddenError"
+                "404":
+                    $ref: "#/components/responses/NotFoundError"
+
+    /patient/medical-tests/report:
+        get:
+            summary: Get medical test report
+            description: Download or view the medical test report
+            tags:
+                - final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                performed_test_id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique identifier of the medical test
+                            required:
+                                - patientId
+                                - testId
+            responses:
+                "200":
+                    description: Test report retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MedicalTestDetails"                                 
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+                "403":
+                    $ref: "#/components/responses/ForbiddenError"
+                "404":
+                    $ref: "#/components/responses/NotFoundError"
+
+    /patient/find-doctor:
+        get:
+            summary: Get list of doctors
+            description: Retrieve a list of doctors with basic information
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                specialization:
+                                    type: string
+                                    description: Filter by doctor specialization
+                                location:
+                                    type: string
+                                    description: Search doctor by location
+            responses:
+                "200":
+                    description: Doctors retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                allOf:
+                                  - $ref: '#/components/schemas/Doctor'
+                                  - type: object
+                                    properties:
+                                        availableDays:
+                                            type: array
+                                            description: List of weekdays the doctor is available
+                                            items:
+                                                type: string
+                                                enum:
+                                                  - Monday
+                                                  - Tuesday
+                                                  - Wednesday
+                                                  - Thursday
+                                                  - Friday
+                                                  - Saturday
+                                                  - Sunday
+                                        rating:
+                                            type: number
+                                            format: float
+                                            description: Average rating of the doctor
+                                    required:
+                                        - availableDays
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+
+    /patient/find-doctor/details:
+        get:
+            summary: Get details of  a doctor
+            description: Retrieve information about a specific doctor
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                doctorId:
+                                    type: string
+                                    format: uuid
+            responses:
+                "200":
+                    description: Doctors retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                allOf:
+                                  - $ref: '#/components/schemas/DoctorProfile'
+                                  - type: object
+                                    properties:
+                                        rating:
+                                            type: number
+                                            format: float
+                                            description: Average rating of the doctor
+                                        doctor_reviews:
+                                            type: array
+                                            description: List of reviews for the doctor
+                                            items:
+                                                $ref: "#/components/schemas/DoctorReview"
+                                    required:
+                                        - availableDays
+
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+
+
+# ####################################################################
     /patient/dashboard:
         get:
             summary: Get complete patient dashboard data
             description: Retrieve all dashboard information for a specific patient in a single request
             tags:
                 - Patient Dashboard
-            # parameters:
-            #     - name: patientId
-            #       in: query
-            #       description: Unique identifier of the patient
-            #       required: true
-            #       schema:
-            #           type: string
-            #           format: uuid
             requestBody:
                 required: true
                 content:
@@ -78,53 +374,9 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFoundError"
 
-    /patient/appointments-list:
-        get:
-            summary: Get patient's upcoming appointments
-            description: Retrieve all upcoming appointments for a patient
-            tags:
-                - Appointments
-            # parameters:
-            #     - name: patientId
-            #       in: query
-            #       description: Unique identifier of the patient
-            #       required: true
-            #       schema:
-            #           type: string
-            #           format: uuid
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                patientId:
-                                    type: string
-                                    format: uuid
-                                    description: ID of the patient
-                            required:
-                                - patientId
-            responses:
-                "200":
-                    description: Appointments retrieved successfully
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    data:
-                                        type: array
-                                        items:
-                                            $ref: "#/components/schemas/Appointment"
-                                    # pagination:
-                                    #     $ref: "#/components/schemas/Pagination"
-                "401":
-                    $ref: "#/components/responses/UnauthorizedError"
-                "403":
-                    $ref: "#/components/responses/ForbiddenError"
-                "404":
-                    $ref: "#/components/responses/NotFoundError"
+    
+
+    
 
     /patient/ongoing-medications:
       get:
@@ -232,38 +484,7 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFoundError"
 
-    /prescriptions/details:
-        get:
-            summary: Get full prescription details
-            description: Retrieve complete details of a specific prescription
-            tags:
-                - Prescriptions
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                prescriptionId:
-                                    type: string
-                                    format: uuid
-                                    description: Unique identifier of the prescription
-                            required:
-                                - prescriptionId
-            responses:
-                "200":
-                    description: Prescription details retrieved successfully
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/PrescriptionDetails"
-                "401":
-                    $ref: "#/components/responses/UnauthorizedError"
-                "403":
-                    $ref: "#/components/responses/ForbiddenError"
-                "404":
-                    $ref: "#/components/responses/NotFoundError"
+    
 
     /medical-tests-list:
         get:
@@ -271,21 +492,6 @@ paths:
             description: Retrieve recent medical tests for a patient
             tags:
                 - Medical Tests
-            # parameters:
-            #     - name: patientId
-            #       in: query
-            #       description: Unique identifier of the patient
-            #       required: true
-            #       schema:
-            #           type: string
-            #           format: uuid
-            #     - name: status
-            #       in: query
-            #       description: Filter by test status
-            #       schema:
-            #           type: string
-            #           enum: [pending, reviewed, all]
-            #           default: all
             requestBody:
                 required: true
                 content:
@@ -320,43 +526,7 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFoundError"
 
-    /medical-tests/report:
-        get:
-            summary: Get medical test report
-            description: Download or view the medical test report
-            tags:
-                - Medical Tests
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                patientId:
-                                    type: string
-                                    format: uuid
-                                    description: ID of the patient
-                                testId:
-                                    type: string
-                                    format: uuid
-                                    description: Unique identifier of the medical test
-                            required:
-                                - patientId
-                                - testId
-            responses:
-                "200":
-                    description: Test report retrieved successfully
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/MedicalTestDetails"                                 
-                "401":
-                    $ref: "#/components/responses/UnauthorizedError"
-                "403":
-                    $ref: "#/components/responses/ForbiddenError"
-                "404":
-                    $ref: "#/components/responses/NotFoundError"
+    
 
     /health-summary:
         get:
@@ -687,23 +857,18 @@ paths:
                     $ref: "#/components/responses/ForbiddenError"
                 "404":
                     $ref: "#/components/responses/NotFoundError"
-    /doctor-list:
+    
+
+
+    
+
+
+    /book-appointment:
         get:
-            summary: Get list of doctors
-            description: Retrieve a list of doctors with basic information
+            summary: books an appointment with a doctor
+            description: Retrieve a doctors availability and book an appointment
             tags:
                 - Doctor Profile
-            # parameters:
-            #     - name: specialization
-            #       in: query
-            #       description: Filter by doctor specialization
-            #       schema:
-            #           type: string
-            #     - name: location
-            #       in: query
-            #       description: Search doctor by location
-            #       schema:
-            #           type: string
             requestBody:
                 required: true
                 content:
@@ -724,11 +889,29 @@ paths:
                         application/json:
                             schema:
                                 type: object
-                                properties:
-                                    data:
-                                        type: array
-                                        items:
-                                            $ref: "#/components/schemas/Doctor"
+                                allOf:
+                                  - $ref: '#/components/schemas/Doctor'
+                                  - type: object
+                                    properties:
+                                        availableDays:
+                                            type: array
+                                            description: List of weekdays the doctor is available
+                                            items:
+                                                type: string
+                                                enum:
+                                                  - Monday
+                                                  - Tuesday
+                                                  - Wednesday
+                                                  - Thursday
+                                                  - Friday
+                                                  - Saturday
+                                                  - Sunday
+                                        rating:
+                                            type: number
+                                            format: float
+                                            description: Average rating of the doctor
+                                    required:
+                                        - availableDays
 
                 "401":
                     $ref: "#/components/responses/UnauthorizedError"
@@ -954,46 +1137,7 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFoundError"
 
-        delete:
-            summary: Cancel appointment
-            description: Cancel an existing appointment
-            tags:
-                - Appointment Management
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                appointmentId:
-                                    type: string
-                                    format: uuid
-                                    description: Unique identifier of the appointment
-                                patientId:
-                                    type: string
-                                    format: uuid
-                                    description: Unique identifier of the patient
-                                reason:
-                                    type: string
-                                    description: Reason for cancellation
-                            required:
-                                - appointmentId
-            responses:
-                "204":
-                    description: Appointment cancelled successfully
-                "400":
-                    description: Appointment cannot be cancelled (e.g., too close to appointment time)
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "401":
-                    $ref: "#/components/responses/UnauthorizedError"
-                "403":
-                    $ref: "#/components/responses/ForbiddenError"
-                "404":
-                    $ref: "#/components/responses/NotFoundError"
+        
 
     /appointments/available-slots:
         get:
@@ -1371,13 +1515,13 @@ components:
                     format: uuid
                 doctor:
                     $ref: "#/components/schemas/Doctor"
-                dateTime:
+                date:
                     type: string
-                    format: date-time
-                duration:
-                    type: integer
-                    description: Duration in minutes
-                location:
+                    format: date
+                time:
+                    type: string
+                    format: time
+                medical_center:
                     $ref: "#/components/schemas/AppointmentLocation"
                 serialNumber:
                     type: integer
@@ -1402,9 +1546,6 @@ components:
                 summary:
                     type: string
                     description: Short summary of the prescription
-                status:
-                    type: string
-                    enum: [active, completed, cancelled]
             required:
                 - prescriptionId
                 - doctor
@@ -1417,8 +1558,6 @@ components:
                 - $ref: "#/components/schemas/Prescription"
                 - type: object
                   properties:
-                      patient:
-                          $ref: "#/components/schemas/patient"
                       vitals:
                           type: object
                           properties:
@@ -1477,10 +1616,7 @@ components:
                     type: string
                 orderedBy:
                     $ref: "#/components/schemas/Doctor"
-                orderedDate:
-                    type: string
-                    format: date
-                performedDate:
+                date:
                     type: string
                     format: date
             required:
@@ -1494,8 +1630,6 @@ components:
                 - $ref: "#/components/schemas/MedicalTest"
                 - type: object
                   properties:
-                      patient:
-                          $ref: "#/components/schemas/patient"
                       results:
                           type: array
                           items:
@@ -1511,12 +1645,14 @@ components:
                                               $ref: "#/components/schemas/Measurement"
                                           children:
                                               $ref: "#/components/schemas/Measurement"
-                                  flag:
+                                  status:
                                       type: string
-                                      enum: [normal, low, high, critical]
+                                      enum: [normal, abnormal]
                       notes:
                           type: string
                       performedBy:
+                          $ref: "#/components/schemas/Doctor"
+                      reviewedBy:
                           $ref: "#/components/schemas/Doctor"
                       hospital:
                           $ref: "#/components/schemas/Hospital"
@@ -1637,6 +1773,8 @@ components:
                     type: string
                 designation:
                     type: string
+                academic_institution:
+                    type: string
                 degrees:
                     type: array
                     items:
@@ -1668,11 +1806,6 @@ components:
                     type: string
                 address:
                     $ref: "#/components/schemas/Address"
-                contactNumber:
-                    type: string
-                email:
-                    type: string
-                    format: email
             required:
                 - id
                 - name
@@ -1813,14 +1946,12 @@ components:
                               required:
                                   - degree
                                   - institution
+                      
                       experience:
                           type: integer
                           description: Years of experience
                       bio:
                           type: string
-                      consultationFee:
-                          type: number
-                          format: float
                       availableDays:
                           type: array
                           items:
@@ -1889,10 +2020,7 @@ components:
                     maximum: 5
                 comment:
                     type: string
-                visitDate:
-                    type: string
-                    format: date
-                createdAt:
+                date:
                     type: string
                     format: date-time
             required:
@@ -1930,10 +2058,9 @@ components:
                     description: Hospital or clinic name
                 address:
                     $ref: "#/components/schemas/Address"
-                room:
+                chamber:
                     type: string
-                floor:
-                    type: string
+                    description: Specific chamber or room number within the hospital or clinic
             required:
                 - name
                 - address
