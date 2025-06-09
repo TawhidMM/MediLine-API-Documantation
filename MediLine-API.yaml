@@ -39,6 +39,105 @@ tags:
       description: Endpoints for hospital side operations
 
 paths:
+    /patient/dashboard:
+        get:
+            summary: Get complete patient dashboard data
+            description: Retrieve all dashboard information for a specific patient in a single request
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                patientId:
+                                    type: string
+                                    format: uuid
+                                    description: ID of the patient
+                            required:
+                                - patientId
+            responses:
+                "200":
+                    description: Complete dashboard data retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    nextAppointment:
+                                        type: string
+                                        format: date
+                                        description: Date of the next appointment
+                                    todays_medications:
+                                        description: List of medications for today
+                                        $ref: "#/components/schemas/Medication"    
+                                    upcoming_appointments:
+                                        description: top 2 Upcoming appointments for the patient
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Appointment"
+                                    recent_weights:
+                                        description: weights from recent 6 appointments
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                date:
+                                                    type: string
+                                                    format: date
+                                                    description: Date of the weight measurement
+                                                weight:
+                                                    type: number
+                                                    format: float
+                                                    description: Weight in kilograms
+                                    recent_blood_pressures:
+                                        description: blood pressures from recent 6 appointments
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                date:
+                                                    type: string
+                                                    format: date
+                                                bloodPressure:
+                                                    type: string
+                                                    format: float
+                                                    description: Blood pressure reading
+                                    recent_heart_rates:
+                                        description: heart rates from recent 6 appointments
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                date:
+                                                    type: string
+                                                    format: date
+                                                heartRate:
+                                                    type: number
+                                                    format: float
+                                                    description: heart rate in beats per minute
+                                    pending_suggested_tests:
+                                        description: recent 3 pending suggested medical tests
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/MedicalTest" 
+                                required:
+                                    - nextAppointment
+                                    - todays_medications
+                                    - upcoming_appointments
+                                    - pending_suggested_tests
+                                    - recent_weights
+                                    - recent_blood_pressures
+                                    - recent_heart_rates
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+                "403":
+                    $ref: "#/components/responses/ForbiddenError"
+                "404":
+                    $ref: "#/components/responses/NotFoundError"
+
     /patient/test-request-list:
         get:
             summary: Get the list of medical test requests
@@ -341,38 +440,7 @@ paths:
 
 
 # ####################################################################
-    /patient/dashboard:
-        get:
-            summary: Get complete patient dashboard data
-            description: Retrieve all dashboard information for a specific patient in a single request
-            tags:
-                - Patient Dashboard
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                patientId:
-                                    type: string
-                                    format: uuid
-                                    description: ID of the patient
-                            required:
-                                - patientId
-            responses:
-                "200":
-                    description: Complete dashboard data retrieved successfully
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/PatientDashboard"
-                "401":
-                    $ref: "#/components/responses/UnauthorizedError"
-                "403":
-                    $ref: "#/components/responses/ForbiddenError"
-                "404":
-                    $ref: "#/components/responses/NotFoundError"
+    
 
     
 
@@ -1586,25 +1654,27 @@ components:
                               - "Hypertension"
                               - "Diabetes"
                       medications:
-                          type: array
-                          items:
-                              type: object
-                              properties:
-                                  name:
-                                      type: string
-                                  dosage:
-                                      type: string
-                                  frequency:
-                                      type: string
-                                  duration:
-                                      type: string
-                                  instructions:
-                                      type: string
+                          $ref: "#/components/schemas/Medications"
                       notes:
                           type: string
                       nextAppointment:
                           type: string
                           description: Date and time of the next appointment
+        medications:
+            type: array
+            items:
+                type: object
+                properties:
+                    name:
+                        type: string
+                    dosage:
+                        type: string
+                    frequency:
+                        type: string
+                    duration:
+                        type: string
+                    instructions:
+                        type: string
 
         MedicalTest:
             type: object
