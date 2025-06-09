@@ -13,8 +13,6 @@ info:
 tags:
     - name: Final
       description: Ready for backend
-    - name: Appointments
-      description: Patient appointment operations
     - name: Prescriptions
       description: Patient prescription operations
     - name: Medical Tests
@@ -33,8 +31,8 @@ tags:
       description: Endpoints for booking, viewing, and managing appointments
     - name: Prescription Management
       description: Endpoints for creating and managing prescriptions
-    - name: Hospital
-      description: Endpoints for hospital side operations
+    - name: medical_center
+      description: Endpoints for medical_center side operations
 
 paths:
     /patient/dashboard:
@@ -188,14 +186,14 @@ paths:
                                         type: string
                                         format: date-time
                                         description: Date when the test was requested
-                                    Hospital:
-                                        $ref: "#/components/schemas/Hospital"
+                                    medical_center:
+                                        $ref: "#/components/schemas/MedicalCenter"
                                 required:
                                     - request_id
                                     - test
                                     - status
                                     - requested_date
-                                    - Hospital
+                                    - medical_center
                 "401":
                     $ref: "#/components/responses/UnauthorizedError"
                 "403":
@@ -437,64 +435,54 @@ paths:
                     $ref: "#/components/responses/UnauthorizedError"
 
 
+    /medical-tests-list:
+        get:
+            summary: Get patient's recent medical tests
+            description: Retrieve recent medical tests for a patient
+            tags:
+                - Final
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                patientId:
+                                    type: string
+                                    format: uuid
+                                    description: ID of the patient
+                            required:
+                                - patientId
+            responses:
+                "200":
+                    description: Medical tests retrieved successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    allOf:
+                                        - $ref: '#/components/schemas/MedicalTest'
+                                        - type: object
+                                          properties:
+                                            performedBy:
+                                                $ref: "#/components/schemas/DoctorSummary"
+                                                description: the doctor who performed the test
+                                            reviewedBy:
+                                                $ref: "#/components/schemas/DoctorSummary"
+                                                description: the doctor who reviewed the test
+                                            medical_center:
+                                                $ref: "#/components/schemas/MedicalCenter"              
+                "401":
+                    $ref: "#/components/responses/UnauthorizedError"
+                "403":
+                    $ref: "#/components/responses/ForbiddenError"
+                "404":
+                    $ref: "#/components/responses/NotFoundError"
+
+
 # ####################################################################
-    
-
-    
-
-    
-
-    /patient/ongoing-medications:
-      get:
-        summary: Get ongoing medications of a patient
-        description: Retrieve currently active medications for a given patient
-        tags:
-          - Prescriptions
-        security:
-          - BearerAuth: []
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  patientId:
-                    type: string
-                    format: uuid
-                    example: "patient-uuid-123"
-                required:
-                  - patientId
-        responses:
-          "200":
-            description: List of ongoing medications
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    medications:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          name:
-                            type: string
-                          dosage:
-                            type: string
-                          frequency:
-                            type: string
-                          duration:
-                            type: string
-                          instructions:
-                            type: string
-          "400":
-            $ref: "#/components/responses/BadRequestError"
-          "401":
-            $ref: "#/components/responses/UnauthorizedError"
-          "404":
-            $ref: "#/components/responses/NotFoundError"
-
 
     /prescriptions-list:
         get:
@@ -552,45 +540,7 @@ paths:
 
     
 
-    /medical-tests-list:
-        get:
-            summary: Get patient's recent medical tests
-            description: Retrieve recent medical tests for a patient
-            tags:
-                - Medical Tests
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                patientId:
-                                    type: string
-                                    format: uuid
-                                    description: ID of the patient
-                            required:
-                                - patientId
-            responses:
-                "200":
-                    description: Medical tests retrieved successfully
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    data:
-                                        type: array
-                                        items:
-                                            $ref: "#/components/schemas/MedicalTest"
-                                    # pagination:
-                                    #     $ref: "#/components/schemas/Pagination"
-                "401":
-                    $ref: "#/components/responses/UnauthorizedError"
-                "403":
-                    $ref: "#/components/responses/ForbiddenError"
-                "404":
-                    $ref: "#/components/responses/NotFoundError"
+    
 
     
 
@@ -1428,12 +1378,12 @@ paths:
                 "404":
                     $ref: "#/components/responses/NotFoundError"
 
-    /hospital/test-bookings/filter:
+    /medical_center/test-bookings/filter:
       post:
         summary: Filter and list booked medical tests
-        description: Retrieve booked medical tests based on hospital ID, date range, and report status
+        description: Retrieve booked medical tests based on medical_center ID, date range, and report status
         tags:
-          - Hospital
+          - medical_center
         security:
           - BearerAuth: []
         requestBody:
@@ -1443,10 +1393,10 @@ paths:
               schema:
                 type: object
                 properties:
-                  hospitalId:
+                  medical_centerId:
                     type: string
                     format: uuid
-                    example: "hospital-uuid-456"
+                    example: "medical_center-uuid-456"
                   fromDate:
                     type: string
                     format: date
@@ -1477,12 +1427,12 @@ paths:
             $ref: "#/components/responses/NotFoundError"
 
 
-    /hospital/test-bookings:
+    /medical_center/test-bookings:
       post:
         summary: Book a medical test
-        description: Create a new booking for a medical test at a hospital
+        description: Create a new booking for a medical test at a medical_center
         tags:
-          - Hospital
+          - medical_center
         security:
           - BearerAuth: []
         requestBody:
@@ -1508,12 +1458,12 @@ paths:
               $ref: "#/components/responses/NotFoundError"
          
 
-    /hospital/upload-report:
+    /medical_center/upload-report:
         post:
             summary: Upload medical test report
             description: Upload a medical test report for a patient
             tags:
-                - Hospital
+                - medical_center
             requestBody:
                 required: true
                 content:
@@ -1580,7 +1530,7 @@ components:
                     type: string
                     format: uuid
                 doctor:
-                    $ref: "#/components/schemas/Doctor"
+                    $ref: "#/components/schemas/DoctorSummary"
                 date:
                     type: string
                     format: date
@@ -1683,7 +1633,7 @@ components:
                 name:
                     type: string
                 orderedBy:
-                    $ref: "#/components/schemas/Doctor"
+                    $ref: "#/components/schemas/DoctorSummary"
                 date:
                     type: string
                     format: date
@@ -1722,8 +1672,8 @@ components:
                           $ref: "#/components/schemas/Doctor"
                       reviewedBy:
                           $ref: "#/components/schemas/Doctor"
-                      hospital:
-                          $ref: "#/components/schemas/Hospital"
+                      medical_center:
+                          $ref: "#/components/schemas/MedicalCenter"
 
         HealthSummary:
             type: object
@@ -1829,6 +1779,18 @@ components:
                 - patientId
                 - name
 
+        DoctorSummary:
+            type: object
+            properties:
+                doctorId:
+                    type: string
+                    format: uuid
+                name:
+                    type: string
+            required:
+                - doctorId
+                - name
+
         Doctor:
             type: object
             properties:
@@ -1864,7 +1826,7 @@ components:
                 - designation
                 - degrees
 
-        Hospital:
+        MedicalCenter:
             type: object
             properties:
                 id:
@@ -1873,7 +1835,7 @@ components:
                 name:
                     type: string
                 address:
-                    $ref: "#/components/schemas/Address"
+                    type: string
             required:
                 - id
                 - name
@@ -2066,13 +2028,13 @@ components:
                             saturday,
                             sunday,
                         ]
-                hospital:
-                    $ref: "#/components/schemas/Hospital"
+                medical_center:
+                    $ref: "#/components/schemas/MedicalCenter"
             required:
                 - startTime
                 - endTime
                 - availableDay
-                - hospital
+                - medical_center
 
         DoctorReview:
             type: object
@@ -2123,12 +2085,12 @@ components:
             properties:
                 name:
                     type: string
-                    description: Hospital or clinic name
+                    description: medical_center or clinic name
                 address:
                     $ref: "#/components/schemas/Address"
                 chamber:
                     type: string
-                    description: Specific chamber or room number within the hospital or clinic
+                    description: Specific chamber or room number within the medical_center or clinic
             required:
                 - name
                 - address
@@ -2194,10 +2156,10 @@ components:
                     type: string
                     format: uuid
                     description: Optional ID of the related appointment (if prescribed during an appointment)
-                hospitalId:
+                medical_centerId:
                     type: string
                     format: uuid
-                    description: ID of the hospital where the prescription is issued
+                    description: ID of the medical_center where the prescription is issued
                 vitals:
                     type: object
                     properties:
@@ -2249,7 +2211,7 @@ components:
             required:
                 - patientId
                 - doctorId
-                - hospitalId
+                - medical_centerId
                 - medications
                 - symptoms
                 - diagnosis
@@ -2265,10 +2227,10 @@ components:
                   type: string
                   format: uuid
                   example: "patient-uuid-123"
-                hospitalId:
+                medical_centerId:
                   type: string
                   format: uuid
-                  example: "hospital-uuid-456"
+                  example: "medical_center-uuid-456"
                 testName:
                   type: string
                   example: "Complete Blood Count (CBC)"
