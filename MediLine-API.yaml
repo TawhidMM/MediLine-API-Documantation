@@ -15,10 +15,6 @@ tags:
       description: Ready for backend
     - name: Prescriptions
       description: Patient prescription operations
-    - name: Medical Tests
-      description: Patient medical test operations
-    - name: Health Summary
-      description: Patient health summary information
     - name: Notifications
       description: Patient notification operations
     - name: Patient Profile
@@ -531,53 +527,6 @@ paths:
                                             $ref: "#/components/schemas/Prescription"
                                     # pagination:
                                     #     $ref: "#/components/schemas/Pagination"
-                "401":
-                    $ref: "#/components/responses/UnauthorizedError"
-                "403":
-                    $ref: "#/components/responses/ForbiddenError"
-                "404":
-                    $ref: "#/components/responses/NotFoundError"
-
-    
-
-    
-
-    
-
-    /health-summary:
-        get:
-            summary: Get patient's health summary
-            description: Retrieve health summary information for a patient
-            tags:
-                - Health Summary
-            # parameters:
-            #     - name: patientId
-            #       in: query
-            #       description: Unique identifier of the patient
-            #       required: true
-            #       schema:
-            #           type: string
-            #           format: uuid
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                patientId:
-                                    type: string
-                                    format: uuid
-                                    description: ID of the patient
-                            required:
-                                - patientId
-            responses:
-                "200":
-                    description: Health summary retrieved successfully
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/HealthSummary"
                 "401":
                     $ref: "#/components/responses/UnauthorizedError"
                 "403":
